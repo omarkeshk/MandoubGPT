@@ -213,7 +213,16 @@
 				}
 			}
 
-			/* Add smooth transitions for mobile interactions */
+			/* Footer styling */
+			footer {
+				text-align: center;
+				padding: 1rem;
+				font-size: 0.2rem;
+				background: #f8f9fa;
+				color: #333;
+			}
+
+			/* Smooth transitions for mobile interactions */
 			button:active {
 				transform: scale(0.98);
 				transition: transform 0.1s ease;
@@ -249,6 +258,7 @@
 			</div>
 			<div class="input-container">
 				<input
+					dir="rtl"
 					type="text"
 					id="user-input"
 					placeholder="اسأل عن اللي انت عايز تعرفه"
@@ -256,6 +266,24 @@
 				<button onclick="sendMessage()">Send</button>
 			</div>
 		</div>
+
+		<footer>
+			<div
+				class="footer-content"
+				style="
+					text-align: center;
+					background: #f8f9fa;
+					color: #333;
+					font-size: 0.6rem;
+				"
+			>
+				&copy; <%= new Date().getFullYear() %> MandoubGPT. All rights
+				reserved.
+
+				<br />
+				Developed by Omar Keshk
+			</div>
+		</footer>
 
 		<script>
 			const OPENAI_API_KEY = "YOUR_API_KEY" // Replace with your API key
