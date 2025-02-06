@@ -60,6 +60,7 @@ app.post("/api/chat", limiter, async (req, res) => {
 	const prompt = `Answer the question based on this university data: ${JSON.stringify(
 		promptData
 	)}
+	You are supposed to help students with questions related to the provided data. and be their asistant
     If the question is not relevant to the provided data, respond with "
     مش عارف الصراحة. 
 تقريبا الكلام دا يإما مش تبع الكلية أصلا, أو لسة مش عندي المعلومة.
@@ -73,6 +74,7 @@ app.post("/api/chat", limiter, async (req, res) => {
     Talk in Egyptian arabic dialect.
     Only respond with data you have that are relavenat to the question.
     If asken about a date, responf with the day name and dd/mm format.
+	keep in mind that some words might be written in arabic letters while they are english words so always check for this.
     User: ${message}
     AI:`
 
