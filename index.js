@@ -20,9 +20,9 @@ app.use(express.urlencoded({ extended: true }))
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 
-app.set("views", __dirname + "/views");
-app.set("view engine", "ejs");
-app.use(express.static(__dirname + "public"));
+app.set("views", __dirname + "/views")
+app.set("view engine", "ejs")
+app.use(express.static(__dirname + "public"))
 // Mock database (Replace with MongoDB if needed)
 
 const limiter = rateLimit({
@@ -69,7 +69,7 @@ app.post("/api/chat", limiter, async (req, res) => {
 لو حابب تتأكد ابعت للمناديب البشر العاديين."
     
     If you are not sure whether the question is relevant to the provided data, try to give an answer from the data and note that you are not sure.
-    also check if it is a thank you message or not and respond accordingly.
+    also check if it is a thank you or greeting message or not and respond accordingly.
     Talk in Egyptian arabic dialect.
     Only respond with data you have that are relavenat to the question.
     If asken about a date, responf with the day name and dd/mm format.
