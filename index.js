@@ -19,7 +19,7 @@ const openai = new OpenAI({
 	apiKey: process.env.DEEPSEEK_API_KEY,
 })
 
-app.set("trust proxy", true) // Trust Vercel's proxy
+app.set("trust proxy", "loopback, linklocal, uniquelocal")
 
 const RequestLogSchema = new mongoose.Schema(
 	{
@@ -105,7 +105,7 @@ app.post("/api/chat", limiter, async (req, res) => {
 
 		// Log the request and response in the database
 		await RequestLog.create({
-			ip: req.ip,
+			ip: req.headers["x-forwarded-for"] || req.socket.remoteAddress,
 			message: message,
 			response: reply,
 		})
