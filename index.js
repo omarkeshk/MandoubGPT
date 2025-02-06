@@ -8,10 +8,7 @@ const mongoose = require("mongoose")
 require("dotenv").config()
 const axios = require("axios")
 mongoose
-	.connect(process.env.MONGO_URI, {
-		useNewUrlParser: true,
-		useUnifiedTopology: true,
-	})
+	.connect(process.env.MONGO_URI, {})
 	.then(() => console.log("MongoDB connected"))
 	.catch((err) => console.error("MongoDB connection error:", err))
 
@@ -21,6 +18,8 @@ const openai = new OpenAI({
 	baseURL: "https://openrouter.ai/api/v1",
 	apiKey: process.env.DEEPSEEK_API_KEY,
 })
+
+app.set("trust proxy", true) // Trust Vercel's proxy
 
 const RequestLogSchema = new mongoose.Schema(
 	{
