@@ -308,14 +308,31 @@
 						headers: {
 							"Content-Type": "application/json",
 						},
-						body: JSON.stringify({ message }),
+						body: JSON.stringify({
+							message,
+							previousChat: Array.from(
+								chatMessages.querySelectorAll(".message")
+							).map((msg) => {
+								return {
+									sender: msg.classList.contains(
+										"user-message"
+									)
+										? "user"
+										: "bot",
+									text: msg.textContent.trim(),
+								}
+							}),
+						}),
 					})
 					const data = await response.json()
 					const botResponse = data.message
 					// Add bot response
-					addMessage(botResponse, "bot")
+					addMessage(`<span dir="auto">${botResponse}</span>`, "bot")
 				} catch (error) {
-					addMessage("معلش حصل مشكلة, حاول تاني كمان شوية...", "bot")
+					addMessage(
+						"معلش حصل مشكلة, احتمال يكون عليا ضغط كبير بس, حاول مرة تانية.",
+						"bot"
+					)
 				}
 
 				// Hide typing indicator
@@ -325,7 +342,7 @@
 			function addMessage(content, sender) {
 				const messageDiv = document.createElement("div")
 				messageDiv.classList.add("message", `${sender}-message`)
-				messageDiv.textContent = content
+				messageDiv.innerHTML = content
 				chatMessages.appendChild(messageDiv)
 				chatMessages.scrollTop = chatMessages.scrollHeight
 			}
