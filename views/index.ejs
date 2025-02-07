@@ -328,8 +328,9 @@
 					const botResponse = data.message
 					// Add bot response
 					const formattedResponse = botResponse.replace(
-						/(https?:\/\/[^\s]+)/g,
-						(url) => `<a href="${url}" target="_blank">${url}</a>`
+						/(?:\()?(https?:\/\/[^\s\)]+)(?:\))?/g,
+						(match, p1) =>
+							`<a href="${p1}" target="_blank">${p1}</a>`
 					)
 					addMessage(
 						`<span dir="auto">${formattedResponse}</span>`,
