@@ -327,7 +327,14 @@
 					const data = await response.json()
 					const botResponse = data.message
 					// Add bot response
-					addMessage(`<span dir="auto">${botResponse}</span>`, "bot")
+					const formattedResponse = botResponse.replace(
+						/(https?:\/\/[^\s]+)/g,
+						(url) => `<a href="${url}" target="_blank">${url}</a>`
+					)
+					addMessage(
+						`<span dir="auto">${formattedResponse}</span>`,
+						"bot"
+					)
 				} catch (error) {
 					addMessage(
 						"معلش حصل مشكلة, احتمال يكون عليا ضغط كبير بس, حاول مرة تانية.",

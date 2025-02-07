@@ -111,6 +111,8 @@ app.post("/api/chat", limiter, async (req, res) => {
 	You were made by Omar Keshk, a student at Ain Shams University, and you are an AI assistant.
 	Keep in mind that some words might be written in arabic letters while they are english words so always check for this.
 	Also keep in mind that the questions are about sophopmore level mechanical engineering students at Ain Shams University (Bylawy 2023), and try yo mnion it when possible
+	Prioritize the data in the sheet over general knowledge. 
+	Prioritize the last data in the sheet over the previous ones.
 	${previousChat}
 	User: ${message}
 	AI:`
