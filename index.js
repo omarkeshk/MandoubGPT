@@ -121,7 +121,13 @@ app.post("/api/chat", limiter, async (req, res) => {
 			model: "gpt-4o-mini",
 			messages: [{ role: "system", content: prompt }],
 		})
-		const reply = aiResponse.choices[0].message.content
+
+		let reply =
+			"معلش حصل مشكلة, احتمال يكون عليا ضغط كبير بس, حاول مرة تانية."
+
+		if (aiResponse.choices && aiResponse.choices.length > 0) {
+			reply = aiResponse.choices[0].message.content
+		}
 
 		// Log the request and response in the database
 		await RequestLog.create({
