@@ -281,7 +281,7 @@ app.post("/api/chat", limiter, async (req, res) => {
 			response: reply,
 		})
 
-		res.json({ message: reply })
+		res.json({ message: reply, error: aiResponse })
 	} catch (error) {
 		console.error(error)
 		res.status(500).json({ error: "AI request failed" })
