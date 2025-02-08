@@ -271,8 +271,45 @@ app.post("/api/chat", limiter, async (req, res) => {
 		let reply =
 			"معلش حصل مشكلة, احتمال يكون عليا ضغط كبير بس, حاول مرة تانية."
 
-		if (aiResponse.choices && aiResponse.choices.length > 0) {
+		if (
+			aiResponse.choices &&
+			aiResponse.choices.length > 0 &&
+			aiResponse.choices[0].message.content.trim() !== ""
+		) {
 			reply = aiResponse.choices[0].message.content
+		} else {
+			// Fallback to alternative API keys if no valid response
+			const fallbackKeys = [
+				process.env.ALTERNATIVE_API_KEY1,
+				process.env.ALTERNATIVE_API_KEY2,
+				process.env.ALTERNATIVE_API_KEY3,
+				process.env.ALTERNATIVE_API_KEY4,
+			]
+			for (const key of fallbackKeys) {
+				try {
+					const fallbackOpenai = new OpenAI({
+						baseURL: "https://openrouter.ai/api/v1",
+						apiKey: key,
+					})
+					const fallbackResponse =
+						await fallbackOpenai.chat.completions.create({
+							model: "gpt-4o-mini",
+							messages: [{ role: "system", content: prompt }],
+						})
+					if (
+						fallbackResponse.choices &&
+						fallbackResponse.choices.length > 0 &&
+						fallbackResponse.choices[0].message.content.trim() !==
+							""
+					) {
+						reply = fallbackResponse.choices[0].message.content
+
+						break
+					}
+				} catch (err) {
+					console.error("Fallback API key failed:", key, err)
+				}
+			}
 		}
 		// Log the request and response in the database
 		await RequestLog.create({
@@ -281,9 +318,8 @@ app.post("/api/chat", limiter, async (req, res) => {
 			response: reply,
 		})
 
-		res.json({ message: reply, error: aiResponse })
+		res.json({ message: reply })
 	} catch (error) {
-		console.error(error)
 		res.status(500).json({ error: "AI request failed" })
 	}
 })
