@@ -275,11 +275,11 @@ app.post("/api/chat", limiter, async (req, res) => {
 			reply = aiResponse.choices[0].message.content
 		}
 		// Log the request and response in the database
-		// await RequestLog.create({
-		// 	ip: req.headers["x-forwarded-for"] || req.socket.remoteAddress,
-		// 	message: message,
-		// 	response: reply,
-		// })
+		await RequestLog.create({
+			ip: req.headers["x-forwarded-for"] || req.socket.remoteAddress,
+			message: message,
+			response: reply,
+		})
 
 		res.json({ message: reply })
 	} catch (error) {
