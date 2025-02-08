@@ -458,13 +458,16 @@
 						(match, p1) =>
 							`<a href="${p1}" target="_blank">${p1}</a>`
 					)
+                    if(data.error){
+                        console.error(data.error)
+                    }
 					addMessage(
 						`<span dir="auto">${formattedResponse}</span>`,
 						"bot"
 					)
 				} catch (error) {
 					addMessage(
-						"معلش حصل مشكلة, احتمال يكون عليا ضغط كبير بس, حاول مرة تانية.",
+						"في حاجة غلط حصلت, معبش جر تاني.",
 						"bot"
 					)
 					console.error(error)
@@ -472,6 +475,13 @@
 				hideTypingIndicator()
 
 				// Hide typing indicator
+                try {
+                    const typingIndicator = document.querySelector(".typing-indicator")
+                    typingIndicator.style.display = "none"
+                } catch (error) {
+                    
+                }
+                const typingIndicator = document.querySelector(".typing-indicator")
 				typingIndicator.style.display = "none"
 			}
 
