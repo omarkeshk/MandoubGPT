@@ -291,13 +291,71 @@
 					transform: translateY(-8px);
 				}
 			}
+			/* Updated button styles */
+			button {
+				padding: 0 1.5rem;
+				border: none;
+				border-radius: 1rem;
+				background: var(--gradient);
+				color: white;
+				cursor: pointer;
+				transition: all 0.3s ease;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				gap: 0.75rem;
+				font-weight: 500;
+				position: relative;
+				overflow: hidden;
+				min-width: 100px;
+				min-height: 56px;
+			}
+
+			button svg {
+				width: 1.2em;
+				height: 1.2em;
+				flex-shrink: 0;
+			}
+
+			@media (max-width: 768px) {
+				button {
+					padding: 0 1rem;
+					min-width: auto;
+					min-height: 48px;
+				}
+
+				button span.text {
+					display: none;
+				}
+
+				button svg {
+					width: 1.5em;
+					height: 1.5em;
+				}
+			}
+
+			@media (max-width: 480px) {
+				.input-wrapper {
+					gap: 0.5rem;
+				}
+
+				input {
+					padding: 1rem;
+					font-size: 0.9rem;
+				}
+
+				button {
+					border-radius: 0.75rem;
+					min-height: 44px;
+				}
+			}
 		</style>
 	</head>
 	<body>
 		<div class="chat-container">
 			<div class="chat-header">
 				<h1>MandoubGPT</h1>
-				<p class="university-badge">
+				<p class="university-badge" style="text-align: center">
 					Your ASU sophomore mechanical assistant
 				</p>
 			</div>
@@ -307,16 +365,17 @@
 					assistant. How can I help you today?
 				</div>
 			</div>
-			<div class="input-container">
-				<div class="input-wrapper">
-					<input
-						type="text"
-						id="user-input"
-						placeholder="اسأل عن اللي انت عايز تعرفه"
-					/>
-					<button onclick="sendMessage()">Send</button>
-				</div>
-			</div>
+            <div class="input-container">
+                <div class="input-wrapper">
+                    <input type="text" id="user-input" placeholder="اكتب رسالتك... / Type your message...">
+                    <button onclick="sendMessage()">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                        </svg>
+                        <span class="text">Send</span>
+                    </button>
+                </div>
 		</div>
 		<footer>
 			© 2025 MandoubGPT. All rights reserved.
