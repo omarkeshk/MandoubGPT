@@ -1,247 +1,305 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="auto">
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>MandoubGPT - Sophomore Mechanical Assistant</title>
+		<script>
+			const CLIENT_URL = "<%= CLIENT_URL %>"
+		</script>
+		<link
+			href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Cairo:wght@400;600&display=swap"
+			rel="stylesheet"
+		/>
 		<style>
+			:root {
+				--primary-color: #1a1d24;
+				--secondary-color: #252932;
+				--accent-color: #d4af37;
+				--text-primary: #f0f3f5;
+				--text-secondary: #9ba7b3;
+				--gradient: linear-gradient(135deg, #d4af37 0%, #c19b52 100%);
+			}
+
 			* {
+				box-sizing: border-box;
 				margin: 0;
 				padding: 0;
-				box-sizing: border-box;
-				font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+				font-family: "Poppins", "Cairo", system-ui, sans-serif;
+				unicode-bidi: plaintext;
 			}
 
 			body {
-				background: #f0f2f5;
+				background: var(--primary-color);
+				color: var(--text-primary);
 				min-height: 100vh;
+				display: flex;
+				flex-direction: column;
 			}
 
 			.chat-container {
-				max-width: 800px;
+				max-width: 1400px;
 				margin: 2rem auto;
-				background: white;
-				border-radius: 15px;
-				box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+				border-radius: 1.5rem;
 				overflow: hidden;
+				background: var(--secondary-color);
+				box-shadow: 0 1rem 4rem rgba(0, 0, 0, 0.4);
+				height: calc(100vh - 8rem);
+				display: flex;
+				flex-direction: column;
+				border: 1px solid rgba(255, 255, 255, 0.05);
 			}
 
 			.chat-header {
-				background: linear-gradient(135deg, #2c3e50, #3498db);
-				color: white;
-				padding: 1.5rem;
-				text-align: center;
+				background: linear-gradient(
+					135deg,
+					rgba(33, 33, 33, 0.9) 0%,
+					rgba(42, 42, 42, 0.9) 100%
+				);
+				padding: 1.5rem 2rem;
+				border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+				backdrop-filter: blur(8px);
+				display: flex;
+				flex-direction: column;
+				align-items: center;
 			}
 
 			.chat-header h1 {
 				font-size: 1.8rem;
-				margin-bottom: 0.5rem;
+				font-weight: 600;
+				background: var(--gradient);
+				-webkit-background-clip: text;
+				background-clip: text;
+				-webkit-text-fill-color: transparent;
+				letter-spacing: -0.5px;
 			}
 
 			.chat-messages {
-				height: 500px;
+				flex: 1;
+				padding: 2rem;
 				overflow-y: auto;
-				padding: 1.5rem;
 				display: flex;
 				flex-direction: column;
-				gap: 1rem;
+				gap: 1.5rem;
+				background: radial-gradient(
+					circle at 50% 0%,
+					rgba(212, 175, 55, 0.03) 0%,
+					transparent 100%
+				);
+			}
+			.chat-messages {
+				scroll-behavior: smooth;
+			}
+
+			/* WebKit scrollbar styles */
+			.chat-messages::-webkit-scrollbar {
+				width: 8px;
+			}
+
+			.chat-messages::-webkit-scrollbar-track {
+				background: rgba(0, 0, 0, 0.1);
+				border-radius: 4px;
+			}
+
+			.chat-messages::-webkit-scrollbar-thumb {
+				background: var(--accent-color);
+				border-radius: 4px;
+			}
+
+			.chat-messages::-webkit-scrollbar-thumb:hover {
+				background: var(--secondary-color);
 			}
 
 			.message {
-				max-width: 70%;
-				padding: 1rem;
-				border-radius: 15px;
-				animation: fadeIn 0.3s ease-in;
+				max-width: 75%;
+				padding: 1.25rem 1.75rem;
+				border-radius: 1.25rem;
+				animation: messageAppear 0.4s
+					cubic-bezier(0.175, 0.885, 0.32, 1.275);
+				position: relative;
+				line-height: 1.6;
+				unicode-bidi: plaintext;
+				direction: auto;
+				border: 1px solid rgba(255, 255, 255, 0.06);
+				backdrop-filter: blur(4px);
 			}
 
 			.user-message {
-				background: #3498db;
-				color: white;
-				margin-left: auto;
+				align-self: flex-end;
+				background: linear-gradient(
+					135deg,
+					rgba(212, 175, 55, 0.15) 0%,
+					rgba(193, 155, 82, 0.1) 100%
+				);
+				border-radius: 1.25rem 1.25rem 0.25rem 1.25rem;
+				border: 1px solid rgba(212, 175, 55, 0.15);
 			}
 
 			.bot-message {
-				background: #f0f0f0;
-				margin-right: auto;
+				align-self: flex-start;
+				background: rgba(25, 28, 34, 0.8);
+				border-radius: 0.25rem 1.25rem 1.25rem 1.25rem;
 			}
 
 			.input-container {
-				padding: 1.5rem;
-				background: #f8f9fa;
-				display: flex;
-				gap: 1rem;
+				padding: 1.5rem 2rem;
+				background: rgba(22, 25, 30, 0.9);
+				border-top: 1px solid rgba(255, 255, 255, 0.08);
+				backdrop-filter: blur(8px);
 			}
 
-			input[type="text"] {
+			.input-wrapper {
+				display: flex;
+				gap: 1rem;
+				position: relative;
+			}
+
+			input {
 				flex: 1;
-				padding: 1rem;
+				padding: 1.25rem 1.5rem;
 				border: none;
-				border-radius: 10px;
+				border-radius: 1rem;
+				background: rgba(35, 38, 45, 0.8);
+				color: var(--text-primary);
 				font-size: 1rem;
-				background: white;
-				box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+				direction: auto;
+				unicode-bidi: plaintext;
+				transition: all 0.3s ease;
+				min-height: 56px;
+				border: 1px solid transparent;
+				direction: rtl;
+			}
+
+			input:focus {
+				outline: none;
+				border: 1px solid var(--accent-color);
+				box-shadow: 0 0 1rem rgba(212, 175, 55, 0.15);
+			}
+
+			input::placeholder {
+				color: var(--text-secondary);
+				opacity: 0.8;
 			}
 
 			button {
-				padding: 1rem 2rem;
+				padding: 0 2rem;
 				border: none;
-				border-radius: 10px;
-				background: #3498db;
+				border-radius: 1rem;
+				background: var(--gradient);
 				color: white;
 				cursor: pointer;
-				transition: background 0.3s ease;
+				transition: all 0.3s ease;
+				display: flex;
+				align-items: center;
+				gap: 0.75rem;
+				font-weight: 500;
+				position: relative;
+				overflow: hidden;
+			}
+
+			button::after {
+				content: "";
+				position: absolute;
+				top: 0;
+				left: -100%;
+				width: 100%;
+				height: 100%;
+				background: linear-gradient(
+					90deg,
+					transparent,
+					rgba(255, 255, 255, 0.1),
+					transparent
+				);
+				transition: 0.5s;
+			}
+
+			button:hover::after {
+				left: 100%;
 			}
 
 			button:hover {
-				background: #2980b9;
+				transform: translateY(-1px);
+				box-shadow: 0 0.5rem 1.5rem rgba(212, 175, 55, 0.2);
 			}
 
+			@keyframes messageAppear {
+				0% {
+					opacity: 0;
+					transform: translateY(1rem) scale(0.95);
+				}
+				100% {
+					opacity: 1;
+					transform: translateY(0) scale(1);
+				}
+			}
+
+			footer {
+				background: var(--secondary-color);
+				padding: 1rem 2rem;
+				text-align: center;
+				font-size: 0.9rem;
+				border-top: 1px solid rgba(255, 255, 255, 0.06);
+			}
+
+			@media (max-width: 768px) {
+				.chat-container {
+					margin: 0;
+					height: calc(100vh - 6rem);
+					border-radius: 0;
+				}
+
+				.message {
+					max-width: 90%;
+					padding: 1rem 1.25rem;
+				}
+
+				input {
+					padding: 1rem;
+				}
+			}
+			/* Add typing indicator styles */
 			.typing-indicator {
-				display: none;
-				padding: 1rem;
-				background: #f0f0f0;
-				border-radius: 15px;
-				width: fit-content;
-				margin: 0.5rem 0;
-			}
-
-			.typing-dots {
-				display: flex;
-				gap: 0.3rem;
+				display: inline-flex;
+				align-items: center;
+				padding: 1rem 1.75rem;
 			}
 
 			.typing-dot {
 				width: 8px;
 				height: 8px;
-				background: #999;
+				margin: 0 3px;
+				background: var(--text-secondary);
 				border-radius: 50%;
-				animation: typing 1.4s infinite;
+				animation: typing 1.4s infinite ease-in-out;
 			}
 
-			@keyframes fadeIn {
-				from {
-					opacity: 0;
-					transform: translateY(10px);
-				}
-				to {
-					opacity: 1;
-					transform: translateY(0);
-				}
+			.typing-dot:nth-child(2) {
+				animation-delay: 0.2s;
+			}
+
+			.typing-dot:nth-child(3) {
+				animation-delay: 0.4s;
 			}
 
 			@keyframes typing {
 				0%,
+				80%,
 				100% {
 					transform: translateY(0);
 				}
-				50% {
-					transform: translateY(-5px);
+				40% {
+					transform: translateY(-8px);
 				}
-			}
-
-			@media (max-width: 768px) {
-				.chat-container {
-					margin: 0;
-					border-radius: 0;
-					height: 100vh;
-				}
-				.chat-messages {
-					height: calc(100vh - 160px);
-				}
-			}
-
-			@media (max-width: 768px) {
-				.chat-container {
-					margin: 0;
-					border-radius: 0;
-					height: 100vh;
-					width: 100%;
-				}
-
-				.chat-messages {
-					height: calc(100vh - 160px);
-					padding: 1rem;
-				}
-
-				.message {
-					max-width: 85%;
-					padding: 0.8rem;
-					font-size: 0.9rem;
-				}
-
-				.chat-header {
-					padding: 1rem;
-				}
-
-				.chat-header h1 {
-					font-size: 1.5rem;
-				}
-
-				.input-container {
-					padding: 1rem;
-					flex-direction: column;
-				}
-
-				input[type="text"] {
-					padding: 0.8rem;
-					width: 100%;
-				}
-
-				button {
-					width: 100%;
-					padding: 0.8rem;
-				}
-
-				/* Mobile-specific adjustments */
-				@media (max-width: 480px) {
-					.message {
-						max-width: 90%;
-						padding: 0.7rem;
-					}
-
-					.chat-header h1 {
-						font-size: 1.3rem;
-					}
-
-					.chat-header p {
-						font-size: 0.9rem;
-					}
-
-					.typing-indicator {
-						padding: 0.7rem;
-					}
-				}
-			}
-
-			/* Footer styling */
-			footer {
-				text-align: center;
-				padding: 1rem;
-				font-size: 0.2rem;
-				background: #f8f9fa;
-				color: #333;
-			}
-
-			/* Smooth transitions for mobile interactions */
-			button:active {
-				transform: scale(0.98);
-				transition: transform 0.1s ease;
-			}
-
-			input[type="text"]:focus {
-				outline: 2px solid #3498db;
-				outline-offset: -2px;
 			}
 		</style>
-		<script>
-			const CLIENT_URL = "<%= clientUrl %>"
-		</script>
 	</head>
 	<body>
 		<div class="chat-container">
 			<div class="chat-header">
 				<h1>MandoubGPT</h1>
-				<p>Your ASU sophomore mechanical assistant</p>
+				<p class="university-badge">
+					Your ASU sophomore mechanical assistant
+				</p>
 			</div>
 			<div class="chat-messages" id="chat-messages">
 				<div class="message bot-message">
@@ -249,58 +307,63 @@
 					assistant. How can I help you today?
 				</div>
 			</div>
-			<div class="typing-indicator" id="typing-indicator">
-				<div class="typing-dots">
-					<div class="typing-dot" style="animation-delay: 0s"></div>
-					<div class="typing-dot" style="animation-delay: 0.2s"></div>
-					<div class="typing-dot" style="animation-delay: 0.4s"></div>
+			<div class="input-container">
+				<div class="input-wrapper">
+					<input
+						type="text"
+						id="user-input"
+						placeholder="اسأل عن اللي انت عايز تعرفه"
+					/>
+					<button onclick="sendMessage()">Send</button>
 				</div>
 			</div>
-			<div class="input-container">
-				<input
-					dir="rtl"
-					type="text"
-					id="user-input"
-					placeholder="اسأل عن اللي انت عايز تعرفه"
-				/>
-				<button onclick="sendMessage()">Send</button>
-			</div>
 		</div>
-
 		<footer>
-			<div
-				class="footer-content"
-				style="
-					text-align: center;
-					background: #f8f9fa;
-					color: #333;
-					font-size: 0.6rem;
-				"
+			© 2025 MandoubGPT. All rights reserved.
+			<br />
+			Developed by
+			<a
+				href="https://wa.me/201014078364"
+				style="text-decoration: none; color: var(--accent-color)"
+				target="_blank"
+				>Omar Keshk</a
 			>
-				&copy; <%= new Date().getFullYear() %> MandoubGPT. All rights
-				reserved.
-
-				<br />
-				Developed by Omar Keshk
-			</div>
 		</footer>
-
 		<script>
-			const OPENAI_API_KEY = "YOUR_API_KEY" // Replace with your API key
+			// Previous JavaScript remains the same with improved animations
 			const chatMessages = document.getElementById("chat-messages")
 			const userInput = document.getElementById("user-input")
-			const typingIndicator = document.getElementById("typing-indicator")
+			let messageHistory = []
+			let historyIndex = -1
+
+			userInput.addEventListener("keydown", (e) => {
+				if (e.key === "ArrowUp" && messageHistory.length > 0) {
+					e.preventDefault()
+					historyIndex = Math.max(historyIndex - 1, 0)
+					userInput.value = messageHistory[historyIndex]
+				} else if (e.key === "ArrowDown" && messageHistory.length > 0) {
+					e.preventDefault()
+					historyIndex = Math.min(
+						historyIndex + 1,
+						messageHistory.length - 1
+					)
+					userInput.value = messageHistory[historyIndex] || ""
+				} else if (e.key === "Enter") {
+					e.preventDefault()
+					sendMessage()
+				}
+			})
 
 			async function sendMessage() {
 				const message = userInput.value.trim()
 				if (!message) return
 
-				// Add user message
+				messageHistory.unshift(message)
+				historyIndex = -1
+
 				addMessage(message, "user")
 				userInput.value = ""
-
-				// Show typing indicator
-				typingIndicator.style.display = "block"
+				showTypingIndicator()
 
 				try {
 					const response = await fetch(`${CLIENT_URL}/api/chat`, {
@@ -343,23 +406,49 @@
 					)
 					console.error(error)
 				}
+				hideTypingIndicator()
 
 				// Hide typing indicator
 				typingIndicator.style.display = "none"
 			}
 
-			function addMessage(content, sender) {
+			document.getElementById("user-input").value = ""
+			document.getElementById("user-input").focus()
+			function addMessage(text, sender) {
 				const messageDiv = document.createElement("div")
-				messageDiv.classList.add("message", `${sender}-message`)
-				messageDiv.innerHTML = content
+				messageDiv.className = `message ${sender}-message`
+				messageDiv.innerHTML = text.replace(/\n/g, "<br>")
 				chatMessages.appendChild(messageDiv)
 				chatMessages.scrollTop = chatMessages.scrollHeight
 			}
 
-			// Handle Enter key
-			userInput.addEventListener("keypress", (e) => {
-				if (e.key === "Enter") sendMessage()
-			})
+			let isBotTyping = false
+
+			// Add typing indicator element
+			function showTypingIndicator() {
+				if (isBotTyping) return
+
+				const typingDiv = document.createElement("div")
+				typingDiv.className = "message bot-message typing-indicator"
+				typingDiv.innerHTML = `
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            `
+				chatMessages.appendChild(typingDiv)
+				chatMessages.scrollTop = chatMessages.scrollHeight
+				isBotTyping = true
+			}
+
+			// Remove typing indicator
+			function hideTypingIndicator() {
+				const typingIndicator =
+					document.querySelector(".typing-indicator")
+				if (typingIndicator) {
+					typingIndicator.remove()
+				}
+				isBotTyping = false
+			}
 		</script>
 	</body>
 </html>

@@ -59,63 +59,209 @@ const limiter = rateLimit({
 // Route: AI-powered chatbot response
 app.post("/api/chat", limiter, async (req, res) => {
 	const { message } = req.body
-	let rows
+
+	// Fetch data from Google Sheets
+
+	const instructionsUrl = `https://sheets.googleapis.com/v4/spreadsheets/${process.env.GOOGLE_SHEET_ID}/values/Instructions?key=${process.env.GOOGLE_API_KEY}`
+	let instructionsData = ""
 	try {
-		const url = `https://sheets.googleapis.com/v4/spreadsheets/${process.env.GOOGLE_SHEET_ID}/values/Sheet1?key=${process.env.GOOGLE_API_KEY}`
-		const response = await fetch(url, {
-			method: "GET",
-		})
+		const response = await fetch(instructionsUrl, { method: "GET" })
 		const data = await response.json()
-		rows = data.values
+		if (data.values && data.values.length > 0) {
+			instructionsData = data.values.map((row) => row[0]).join("\n")
+		}
 	} catch (error) {
-		console.error(error)
-		res.status(500).json({ error: "Failed to fetch data" })
+		console.error("Failed to fetch instructions:", error)
+		instructionsData = "تعذر جلب التعليمات من جوجل شيت."
 	}
 
-	// Convert rows to JSON (Assuming first row contains headers)
-	const headers = rows[0]
-	const promptData = rows.slice(1).map((row) => ({
-		[row[0]]: row.slice(1).reduce((acc, val, index) => {
-			// Use headers if available, otherwise fallback to column numbering
-			const header = headers[index + 1] || `value1${index + 1}`
-			acc[header] = val
-			return acc
-		}, {}),
-	}))
+	const generalInfoUrl = `https://sheets.googleapis.com/v4/spreadsheets/${process.env.GOOGLE_SHEET_ID}/values/General?key=${process.env.GOOGLE_API_KEY}`
+	let generalInfoData = ""
+	try {
+		const response = await fetch(generalInfoUrl, { method: "GET" })
+		const data = await response.json()
+		if (data.values && data.values.length > 0) {
+			generalInfoData = data.values
+				.map((row) => {
+					const key = row[0]
+					const value = row.slice(1).join(" ")
+					return `${key}: ${value}`
+				})
+				.join("\n")
+		}
+	} catch (error) {
+		console.error("Failed to fetch general information:", error)
+		generalInfoData = "تعذر جلب المعلومات العامة من جوجل شيت."
+	}
+
+	const qaUrl = `https://sheets.googleapis.com/v4/spreadsheets/${process.env.GOOGLE_SHEET_ID}/values/FAQs?key=${process.env.GOOGLE_API_KEY}`
+	let qaData = ""
+	try {
+		const response = await fetch(qaUrl, { method: "GET" })
+		const data = await response.json()
+		if (data.values && data.values.length > 0) {
+			qaData = data.values
+				.map((row) => {
+					const key = row[0]
+					const value = row.slice(1).join(" ")
+					return `${key}: ${value}`
+				})
+				.join("\n")
+		}
+	} catch (error) {
+		console.error("Failed to fetch Q&A data:", error)
+		qaData = "تعذر جلب بيانات الأسئلة والأجوبة من جوجل شيت."
+	}
+
+	const currentWeekUrl = `https://sheets.googleapis.com/v4/spreadsheets/${process.env.GOOGLE_SHEET_ID}/values/Timetables?key=${process.env.GOOGLE_API_KEY}`
+	let currentWeekData = ""
+	try {
+		const response = await fetch(currentWeekUrl, { method: "GET" })
+		const data = await response.json()
+		if (data.values && data.values.length > 0) {
+			currentWeekData = data.values
+				.map((row) => {
+					const key = row[0]
+					const value = row.slice(1).join(" ")
+					return `${key}: ${value}`
+				})
+				.join("\n")
+		}
+	} catch (error) {
+		console.error("Failed to fetch current week data:", error)
+		currentWeekData = "تعذر جلب بيانات الأسبوع الحالي من جوجل شيت."
+	}
+
+	const deadlineUrl = `https://sheets.googleapis.com/v4/spreadsheets/${process.env.GOOGLE_SHEET_ID}/values/Deadlines%20Data?key=${process.env.GOOGLE_API_KEY}`
+	let deadlineData = ""
+	try {
+		const response = await fetch(deadlineUrl, { method: "GET" })
+		const data = await response.json()
+		if (data.values && data.values.length > 0) {
+			deadlineData = data.values
+				.map((row) => {
+					const key = row[0]
+					const value = row.slice(1).join(" ")
+					return `${key}: ${value}`
+				})
+				.join("\n")
+		}
+	} catch (error) {
+		console.error("Failed to fetch deadline data:", error)
+		deadlineData = "تعذر جلب بيانات المواعيد النهائية من جوجل شيت."
+	}
+
+	const weeklyDataUrl = `https://sheets.googleapis.com/v4/spreadsheets/${process.env.GOOGLE_SHEET_ID}/values/Weekly?key=${process.env.GOOGLE_API_KEY}`
+	let weeklyData = ""
+	try {
+		const response = await fetch(weeklyDataUrl, { method: "GET" })
+		const data = await response.json()
+		if (data.values && data.values.length > 0) {
+			weeklyData = data.values
+
+				.map((row) => {
+					const key = row[0]
+					const value = row.slice(1).join(" ")
+					return `${key}: ${value}`
+				})
+				.join("\n")
+		}
+	} catch (error) {
+		console.error("Failed to fetch weekly data:", error)
+		weeklyData = "تعذر جلب بيانات الأسبوع من جوجل شيت."
+	}
+	const additionalDataLink = `https://sheets.googleapis.com/v4/spreadsheets/${process.env.ADDITIONAL_SHEET_ID}/values/Sheet1?key=${process.env.GOOGLE_API_KEY}`
+
+	let additionalData = ""
+	try {
+		const response = await fetch(additionalDataLink, { method: "GET" })
+		const data = await response.json()
+		if (data.values && data.values.length > 0) {
+			additionalData = data.values
+				.map((row) => {
+					const key = row[0]
+					const value = row.slice(1).join(" ")
+					return `${key}: ${value}`
+				})
+				.join("\n")
+		}
+	} catch (error) {
+		console.error("Failed to fetch additional data:", error)
+		additionalData = "تعذر جلب البيانات الإضافية من جوجل شيت."
+	}
+
+	// // Convert rows to JSON (Assuming first row contains headers)
+	// const headers = rows[0]
+	// const promptData = rows.slice(1).map((row) => ({
+	// 	[row[0]]: row.slice(1).reduce((acc, val, index) => {
+	// 		// Use headers if available, otherwise fallback to column numbering
+	// 		const header = headers[index + 1] || `value1${index + 1}`
+	// 		acc[header] = val
+	// 		return acc
+	// 	}, {}),
+	// }))
 	const previousChat = req.body.previousChat
 		? `Previous chat: ${req.body.previousChat}\n`
 		: ""
-	const prompt = `Answer the question based on this university data: ${JSON.stringify(
-		promptData
-	)}
-	Your Name is MandoubGPT
-	You are supposed to help mechanical engineering students in sophopmore level at Ain Shams University (Bylawy 2023) with questions related to the provided data. and be their asistant.
-	The data includes Q&As about the university, some instructions, and general information.
-	The data is in chronological order and the first column is the question and the rest are the answers. and it might contain the date and time of the infroamtion if needed.
-	If the question is not relevant to the provided data, respond with "
-	مش عارف الصراحة. 
-	تقريبا الكلام دا يإما مش تبع الكلية أصلا, أو لسة مش عندي المعلومة.
 
-	حاول تسأل السؤال بطريقة تانية مثلا ممكن أفهمك وأقدر أساعد.
+	/**
+	 ///////////////////////////////////////////////////////////////////////////////////////////////////////
+	 make a google sheet for instructions 
+	 another google sheet for general information about the university
+	 another google sheet for Q&A
+	 another google sheet for data about current week
+	 */
+	const prompt = `
+		Your Name is MandoubGPT.
+		You are an AI assistant designed to help sophomore level mechanical engineering students at Ain Shams University (Bylawy 2023) with questions pertaining to the provided data.
+		The current date and time is ${new Date().toLocaleString()} and today is ${new Date().toLocaleDateString(
+		"en-US",
+		{ weekday: "long" }
+	)}.
+		Answer the question based on the combined data from seven distinct Google Sheets:
+		1. Instructions Sheet:
+			- Contains guidelines and protocols for processing user queries.
+		2. General Information Sheet:
+			- Provides detailed background data about the university.
+		3. Q&A Sheet:
+			- Lists common questions and their corresponding answers.
+		4. Timetables Sheet:
+			- Contains the weekly schedule for the current semester
+		5. Deadlines Sheet:
+			- Contains important deadlines and dates.
+		6. Weekly Data Sheet:
+			- Includes data relevant to the current week. when using this data, mention the date and time of the data.
+			- use the data to answer questions about the current week, today, and tomorrow.
+			- send all the data in this message if asked about reecent updates.
+		7. Additional Data Sheet:
+			- Contains supplementary information that may be relevant to the user's query.
 
-	لو حابب تتأكد ابعت للمناديب البشر العاديين."
+		Instructions:
+		${instructionsData}
 
-	If you feel that the question might be relevant, try to give the best answer you can from the provided data.
-	If asked about yourself, explain your task and that you are an AI assistant.
+		General Information:
+		${generalInfoData}
 
-	The date and time now is ${new Date().toLocaleString()}.
-	If you are not sure whether the question is relevant to the provided data, try to give an answer from the data and note that you are not sure.
-	Check if it is a thank you or greeting message or not and respond accordingly.
-	Talk in Egyptian arabic dialect, and try to write all names in arabic
-	If asked about a date, respond with the day name and dd/mm format.
-	You were made by Omar Keshk, a student at Ain Shams University, and you are an AI assistant.
-	Keep in mind that some words might be written in arabic letters while they are english words so always check for this.
-	Also keep in mind that the questions are about sophopmore level mechanical engineering students at Ain Shams University (Bylawy 2023), and try yo mnion it when possible
-	Prioritize the data in the sheet over general knowledge. 
-	Prioritize the last data in the sheet over the previous ones.
-	${previousChat}
-	User: ${message}
-	AI:`
+		Q&A:
+		${qaData}
+
+		Current Week Data:
+		${currentWeekData}
+
+		Deadlines Data:
+		${deadlineData}
+
+		Weekly Data:
+		${weeklyData}
+
+		Additional Data:
+		${additionalData}
+
+		You were created by Omar Keshk, a student at Ain Shams University.
+
+		${req.body.previousChat}
+		User: ${message}
+		AI: `
 	try {
 		const aiResponse = await openai.chat.completions.create({
 			model: "gpt-4o-mini",
@@ -128,13 +274,12 @@ app.post("/api/chat", limiter, async (req, res) => {
 		if (aiResponse.choices && aiResponse.choices.length > 0) {
 			reply = aiResponse.choices[0].message.content
 		}
-
 		// Log the request and response in the database
-		await RequestLog.create({
-			ip: req.headers["x-forwarded-for"] || req.socket.remoteAddress,
-			message: message,
-			response: reply,
-		})
+		// await RequestLog.create({
+		// 	ip: req.headers["x-forwarded-for"] || req.socket.remoteAddress,
+		// 	message: message,
+		// 	response: reply,
+		// })
 
 		res.json({ message: reply })
 	} catch (error) {
@@ -144,6 +289,6 @@ app.post("/api/chat", limiter, async (req, res) => {
 })
 
 app.get("/", (req, res) => {
-	res.render("index", { clientUrl: process.env.CLIENT_URL })
+	res.render("index", { CLIENT_URL: process.env.CLIENT_URL })
 })
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`))
