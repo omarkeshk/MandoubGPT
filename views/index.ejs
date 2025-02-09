@@ -454,9 +454,13 @@
 					const botResponse = data.message
 					// Add bot response
 					const formattedResponse = botResponse.replace(
-						/(?:\()?(https?:\/\/[^\s\)]+)(?:\))?/g,
-						(match, p1) =>
-							`<a href="${p1}" target="_blank">${p1}</a>`
+						/(?:\()?(\[?https?:\/\/[^\s\)\]]+\]?)(?:\))?/g,
+						(match, p1) => {
+							let url = p1;
+							if (url.startsWith("[")) url = url.substring(1);
+							if (url.endsWith("]")) url = url.substring(0, url.length - 1);
+							return `<a href="${url}" target="_blank">${url}</a>`;
+						}
 					)
                     if(data.error){
                         console.error(data.error)
