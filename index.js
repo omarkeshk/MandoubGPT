@@ -26,6 +26,7 @@ const RequestLogSchema = new mongoose.Schema(
 		ip: { type: String, required: true },
 		message: { type: String, required: true },
 		response: { type: String, required: true },
+		customization: { type: Object },
 	},
 	{ timestamps: true }
 )
@@ -58,9 +59,21 @@ const limiter = rateLimit({
 
 // Route: AI-powered chatbot response
 app.post("/api/chat", limiter, async (req, res) => {
-	const { message } = req.body
-
+	const { message, customization } = req.body
+	const studentName = customization.customName
+	const studentSection = customization.customSection
+	const studentShortMessage = customization.customMessage
 	// Fetch data from Google Sheets
+	if (studentName.length > 30 || studentShortMessage.length > 50) {
+		res.json({ message: "بطل لعب يا حبيبي." })
+		return
+	}
+	const allowedSections = ["general", "1", "2", "3", "4"] // update these values per your requirements
+	if (!allowedSections.includes(studentSection)) {
+		console.log("Invalid section:", studentSection)
+		res.json({ message: "بطل لعب يا حبيبي." })
+		return
+	}
 
 	const instructionsUrl = `https://sheets.googleapis.com/v4/spreadsheets/${process.env.GOOGLE_SHEET_ID}/values/Instructions?key=${process.env.GOOGLE_API_KEY}`
 	let instructionsData = ""
@@ -259,9 +272,27 @@ app.post("/api/chat", limiter, async (req, res) => {
 
 		You were created by Omar Keshk, a student at Ain Shams University.
 
+		${
+			studentName
+				? `
+		The student's name is ${studentName}. Call them by their name.`
+				: ""
+		}
+		${
+			studentSection !== "general"
+				? `The student's section is section ${studentSection}. Use it to provide more accurate information. Never forget it and mention it when asked about timetables or deadlines or what we have tommorow or on a specific day.`
+				: console.log("General section")
+		}
+		${
+			studentShortMessage
+				? `The student's short message for you is ${studentShortMessage}. Use it to personalize the conversation.`
+				: ""
+		}
+
 		${req.body.previousChat}
 		User: ${message}
 		AI: `
+
 	try {
 		const aiResponse = await openai.chat.completions.create({
 			model: "gpt-4o-mini",
@@ -307,6 +338,7 @@ app.post("/api/chat", limiter, async (req, res) => {
 						break
 					}
 				} catch (err) {
+					res.json({ message: "كلم عمر كشك قوله إن الاشتراك خلص" })
 					console.error("Fallback API key failed:", key, err)
 				}
 			}
@@ -316,6 +348,7 @@ app.post("/api/chat", limiter, async (req, res) => {
 			ip: req.headers["x-forwarded-for"] || req.socket.remoteAddress,
 			message: message,
 			response: reply,
+			customization: customization,
 		})
 
 		res.json({ message: reply })
