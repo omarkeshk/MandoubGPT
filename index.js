@@ -281,7 +281,7 @@ app.post("/api/chat", limiter, async (req, res) => {
 		${
 			studentSection !== "general"
 				? `The student's section is section ${studentSection}. Use it to provide more accurate information. Never forget it and mention it when asked about timetables or deadlines or what we have tommorow or on a specific day.`
-				: console.log("General section")
+				: ""
 		}
 		${
 			studentShortMessage
@@ -290,7 +290,7 @@ app.post("/api/chat", limiter, async (req, res) => {
 		}
 
 		${req.body.previousChat}
-		User: ${message}
+		User: ${message} 		${studentSection !== "general" ? `سكشن ${studentSection}` : ""}
 		AI: `
 
 	try {
