@@ -60,9 +60,18 @@ const limiter = rateLimit({
 // Route: AI-powered chatbot response
 app.post("/api/chat", limiter, async (req, res) => {
 	const { message, customization } = req.body
-	const studentName = customization.customName
-	const studentSection = customization.customSection
-	const studentShortMessage = customization.customMessage
+	const studentName =
+		customization && customization.customName
+			? customization.customName
+			: ""
+	const studentSection =
+		customization && customization.customSection
+			? customization.customSection
+			: "general"
+	const studentShortMessage =
+		customization && customization.customMessage
+			? customization.customMessage
+			: ""
 	// Fetch data from Google Sheets
 	if (studentName.length > 30 || studentShortMessage.length > 50) {
 		res.json({ message: "بطل لعب يا حبيبي." })
