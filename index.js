@@ -275,7 +275,7 @@ app.post("/api/chat", limiter, async (req, res) => {
 		${
 			studentName
 				? `
-		The student's name is ${studentName}. Call them by their name.`
+		The student's name is ${studentName}. Always call them by their name in each response.`
 				: ""
 		}
 		${
