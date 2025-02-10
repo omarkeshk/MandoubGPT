@@ -474,15 +474,20 @@
 					const data = await response.json()
 					const botResponse = data.message
 					// Add bot response
-					const formattedResponse = botResponse.replace(
-						/(?:\()?(\[?https?:\/\/[^\s\)\]]+\]?)(?:\))?/g,
-						(match, p1) => {
-							let url = p1;
-							if (url.startsWith("[")) url = url.substring(1);
-							if (url.endsWith("]")) url = url.substring(0, url.length - 1);
-							return `<a href="${url}" target="_blank">${url}</a>`;
-						}
-					)
+                    const formattedResponse = botResponse
+                        .replace(/\*\*\*\*(.*?)\*\*\*\*/g, "<b>$1</b>")
+                        .replace(/\*\*(.*?)\*\*/g, "<b>$1</b>")
+                        .replace(
+                            /(?:\()?(\[?https?:\/\/[^\s\)\]]+\]?)(?:\))?/g,
+                            (match, p1) => {
+                                let url = p1;
+                                if (url.startsWith("[")) url = url.substring(1);
+                                if (url.endsWith("]")) url = url.substring(0, url.length - 1);
+                                return `<a href="${url}" target="_blank">${url}</a>`;
+                            }
+                        )
+                        console.log(botResponse)
+                        
                     if(data.error){
                         console.error(data.error)
                     }
