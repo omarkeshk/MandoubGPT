@@ -297,11 +297,10 @@ app.post("/api/chat", limiter, async (req, res) => {
 				? `The student's short message for you is ${studentShortMessage}. Use it to personalize the conversation.`
 				: ""
 		}
-
+		This is the previous chat between the student and the AI, if any, use it to better understand the context of the conversation.
 		${req.body.previousChat}
 		User: ${message} 		${studentSection !== "general" ? `سكشن ${studentSection}` : ""}
 		AI: `
-
 	try {
 		const aiResponse = await openai.chat.completions.create({
 			model: "gpt-4o-mini",
