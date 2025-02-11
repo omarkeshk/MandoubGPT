@@ -412,9 +412,14 @@
 					maxlength="50"
 					placeholder="اكتب أي حاجة مميزة حابب إنه يعملها في الردود"
 				/>
-				<button id="save-customization">Save</button>
-				<button id="close-customization" style="margin-top: 0.5rem">
+				<button id="close-customization" style="display: inline-block">
 					Close
+				</button>
+				<button
+					id="save-customization"
+					style="display: inline-block; margin-right: 1rem"
+				>
+					Save
 				</button>
 			</div>
 		</div>
@@ -540,7 +545,7 @@
 								if (url.startsWith("[")) url = url.substring(1)
 								if (url.endsWith("]"))
 									url = url.substring(0, url.length - 1)
-								return `<a href="${url}" target="_blank">${url}</a>`
+								return `<div><a href="${url}" target="_blank">${url}</a></div>`
 							}
 						)
 					if (data.error) {
