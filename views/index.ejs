@@ -566,7 +566,41 @@
 			function addMessage(text, sender) {
 				const messageDiv = document.createElement("div")
 				messageDiv.className = `message ${sender}-message`
-				messageDiv.innerHTML = text.replace(/\n/g, "<br>")
+				messageDiv.innerHTML = text
+					.replace(/<\/?span[^>]*>/g, "")
+					.replace(/\n/g, "<br>")
+				// Replace the original text with the plain text content for copying
+				text = messageDiv.innerText
+
+				if (sender === "bot") {
+					const copyButton = document.createElement("i")
+					copyButton.className = "fas fa-copy"
+					copyButton.style.position = "absolute"
+					copyButton.style.position = "fixed"
+					const rect = messageDiv.getBoundingClientRect()
+					copyButton.style.top = rect.top + rect.height / 2 + "px"
+					copyButton.style.right = -rect.left - 8 + "px"
+					copyButton.style.transform = "translateY(-50%)"
+					copyButton.style.background = "transparent"
+					copyButton.style.border = "none"
+					copyButton.style.color = "var(--text-secondary)"
+					copyButton.style.cursor = "pointer"
+					copyButton.addEventListener("click", () => {
+						navigator.clipboard
+							.writeText(text)
+							.then(() => {
+								copyButton.textContent = "Copied!"
+								setTimeout(() => {
+									copyButton.textContent = ""
+								}, 2000)
+							})
+							.catch((err) => {
+								console.error("Failed to copy: ", err)
+							})
+					})
+					messageDiv.appendChild(copyButton)
+				}
+
 				chatMessages.appendChild(messageDiv)
 				chatMessages.scrollTop = chatMessages.scrollHeight
 			}
