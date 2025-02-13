@@ -294,7 +294,7 @@ app.post("/api/chat", limiter, async (req, res) => {
 		}
 		${
 			studentShortMessage
-				? `The student's short message for you is ${studentShortMessage}. Use it to personalize the conversation.`
+				? `Here is an additional custom instruction that the student tells you: ${studentShortMessage}.`
 				: ""
 		}
 		This is the previous chat between the student and the AI, if any, use it to better understand the context of the conversation.
