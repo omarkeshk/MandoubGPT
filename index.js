@@ -365,6 +365,74 @@ app.post("/api/chat", limiter, async (req, res) => {
 	}
 })
 
+app.post("/api/excuses", async (req, res) => {
+	const { message, customization } = req.body
+
+	const prompt = `
+		Give me a straightforward excuse for being late to work. 
+		Provide only the excuse itself, with no additional explanations or disclaimers.
+		User: ${message}
+		Excuse: 
+	`
+
+	try {
+		const aiResponse = await openai.chat.completions.create({
+			model: "gpt-4o-mini",
+			messages: [{ role: "system", content: prompt }],
+		})
+
+		let reply = "عذراً، لم نستطع إنشاء عذر مناسب. حاول مرة أخرى."
+		if (
+			aiResponse.choices &&
+			aiResponse.choices.length > 0 &&
+			aiResponse.choices[0].message.content.trim() !== ""
+		) {
+			reply = aiResponse.choices[0].message.content
+		} else {
+			const fallbackKeys = [
+				process.env.ALTERNATIVE_API_KEY1,
+				process.env.ALTERNATIVE_API_KEY2,
+				process.env.ALTERNATIVE_API_KEY3,
+				process.env.ALTERNATIVE_API_KEY4,
+			]
+			for (const key of fallbackKeys) {
+				try {
+					const fallbackOpenai = new OpenAI({
+						baseURL: "https://openrouter.ai/api/v1",
+						apiKey: key,
+					})
+					const fallbackResponse =
+						await fallbackOpenai.chat.completions.create({
+							model: "gpt-4o-mini",
+							messages: [{ role: "system", content: prompt }],
+						})
+					if (
+						fallbackResponse.choices &&
+						fallbackResponse.choices.length > 0 &&
+						fallbackResponse.choices[0].message.content.trim() !==
+							""
+					) {
+						reply = fallbackResponse.choices[0].message.content
+						break
+					}
+				} catch (err) {
+					console.error("Fallback API key failed:", key, err)
+				}
+			}
+		}
+
+		await RequestLog.create({
+			ip: req.headers["x-forwarded-for"] || req.socket.remoteAddress,
+			message: message,
+			response: reply,
+			customization: customization,
+		})
+
+		res.json({ message: reply })
+	} catch (error) {
+		res.status(500).json({ error: "Excuse request failed" })
+	}
+})
 app.get("/", (req, res) => {
 	res.render("index", { CLIENT_URL: process.env.CLIENT_URL })
 })
