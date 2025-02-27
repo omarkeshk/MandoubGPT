@@ -59,6 +59,8 @@ const limiter = rateLimit({
 
 // Route: AI-powered chatbot response
 app.post("/api/chat", limiter, async (req, res) => {
+	return res.json({ message: "أنا تحت الصيانة حاليا" })
+
 	const { message, customization } = req.body
 	const studentName =
 		customization && customization.customName
@@ -421,12 +423,12 @@ app.post("/api/excuses", async (req, res) => {
 			}
 		}
 
-		await RequestLog.create({
-			ip: req.headers["x-forwarded-for"] || req.socket.remoteAddress,
-			message: message,
-			response: reply,
-			customization: customization,
-		})
+		// await RequestLog.create({
+		// 	ip: req.headers["x-forwarded-for"] || req.socket.remoteAddress,
+		// 	message: message,
+		// 	response: reply,
+		// 	customization: customization,
+		// })
 
 		res.json({ message: reply })
 	} catch (error) {
