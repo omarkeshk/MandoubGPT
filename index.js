@@ -224,10 +224,16 @@ app.post("/api/chat", limiter, async (req, res) => {
 	// 		return acc
 	// 	}, {}),
 	// }))
-	const previousChat = req.body.previousChat
-		? `Previous chat: ${req.body.previousChat}\n`
-		: ""
+	let previousChat = ""
 
+	if (Array.isArray(chatArray)) {
+		previousChat = chatArray
+			.map(
+				({ sender, text }) =>
+					`${sender === "user" ? "User" : "AI"}: ${text}`
+			)
+			.join("\n")
+	}
 	/**
 	 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 	 make a google sheet for instructions 
@@ -300,7 +306,8 @@ app.post("/api/chat", limiter, async (req, res) => {
 				: ""
 		}
 		This is the previous chat between the student and the AI, if any, use it to better understand the context of the conversation.
-		${req.body.previousChat}
+		${previousChat}
+
 		User: ${message} 		${studentSection !== "general" ? `سكشن ${studentSection}` : ""}
 		AI: `
 	try {
@@ -435,6 +442,142 @@ app.post("/api/excuses", async (req, res) => {
 		res.status(500).json({ error: "Excuse request failed" })
 	}
 })
+
+app.post("/api/acu", async (req, res) => {
+	const { message, customization } = req.body
+
+	const chatArray = req.body.previousChat
+	let previousChat = ""
+
+	if (Array.isArray(chatArray)) {
+		previousChat = chatArray
+			.map(
+				({ sender, text }) =>
+					`${sender === "user" ? "User" : "AI"}: ${text}`
+			)
+			.join("\n")
+	}
+	// Fetch data from Google Sheets
+
+	const prompt = `
+		You are a professional AI assistant embedded in a health-focused iOS app that delivers personalized acupressure recommendations based on user-described symptoms. Your goal is to provide clear, medically grounded, and safe guidance for wellness purposes only. You must strictly follow the rules and format below in every response:
+
+		1. Tone & Style
+		- Maintain a concise, respectful, and professional tone.
+		- Write in a way that is approachable yet clinical, suitable for health-conscious users.
+		- Avoid excessive friendliness, emojis, or informal phrasing.
+
+		2. Verified Source Constraint
+		- Only recommend acupressure points found in the verified symptom-to-point database provided.
+		- Never invent or hallucinate point functions or names.
+		- If the symptom cannot be confidently matched, ask up to 2 short follow-up questions to clarify. If still unclear, politely decline.
+
+		3. Response Format (Use This Structure for Each Point)
+		For each of the 2–3 recommended points, use the format below exactly:
+
+		[Point Name]  
+		- Location: [Simple, non-technical location description]  
+		- Instructions: [How to massage it — pressure type, duration, etc.]
+
+		Example:
+
+		LI4 (Hegu)  
+		- Location: On the back of the hand, between the thumb and index finger  
+		- Instructions: Apply circular pressure for 1–2 minutes using your opposite thumb
+
+		4. Follow-Up Logic
+		- If the user's input is unclear, too broad, or not an exact match, ask a polite clarifying question to match it to the closest predefined symptom.
+		- Never make assumptions or proceed without matching to the internal symptom list.
+
+		5. Boundaries & Safety
+		- Do not diagnose, offer cures, or use medical terms that imply treatment.
+		- If the user asks something beyond your scope, reply:
+		“For medical advice, please consult a licensed healthcare provider.”
+		- If a point has contraindications (e.g., not safe during pregnancy), add a brief safety note.
+
+		6. Language Rules
+		- Use no emojis, slang, cultural idioms, or assumptions about user background.
+		- Avoid words like “magical,” “miracle,” “cure,” or anything unscientific.
+
+		7. End Prompt (Optional)
+		- End with a gentle invitation if it fits naturally, e.g.:
+		“Would you like to try another symptom?”
+		- Only include this if the context supports continuation.
+
+		Stay within scope:
+		Your role is to be a trustworthy, informative wellness guide, not a diagnostic tool. Your responses must be factual, cautious, and based solely on the approved internal mapping.
+
+
+		This is the previous chat between the user and the AI, if any:
+		${previousChat}
+
+		User: ${message}
+		AI:
+	`
+	try {
+		const aiResponse = await openai.chat.completions.create({
+			model: "gpt-4o-mini",
+			messages: [{ role: "system", content: prompt }],
+		})
+
+		let reply =
+			"Sorry, we couldn't generate a suitable response. Please try again."
+		if (
+			aiResponse.choices &&
+			aiResponse.choices.length > 0 &&
+			aiResponse.choices[0].message.content.trim() !== ""
+		) {
+			reply = aiResponse.choices[0].message.content
+		} else {
+			const fallbackKeys = [
+				process.env.ALTERNATIVE_API_KEY1,
+				process.env.ALTERNATIVE_API_KEY2,
+				process.env.ALTERNATIVE_API_KEY3,
+				process.env.ALTERNATIVE_API_KEY4,
+			]
+			for (const key of fallbackKeys) {
+				try {
+					const fallbackOpenai = new OpenAI({
+						baseURL: "https://openrouter.ai/api/v1",
+						apiKey: key,
+					})
+					const fallbackResponse =
+						await fallbackOpenai.chat.completions.create({
+							model: "gpt-4o-mini",
+							messages: [{ role: "system", content: prompt }],
+						})
+					if (
+						fallbackResponse.choices &&
+						fallbackResponse.choices.length > 0 &&
+						fallbackResponse.choices[0].message.content.trim() !==
+							""
+					) {
+						reply = fallbackResponse.choices[0].message.content
+						break
+					}
+				} catch (err) {
+					res.json({
+						message:
+							"Usage limit reached. Please contact the developer.",
+					})
+					console.error("Fallback API key failed:", key, err)
+				}
+			}
+		}
+
+		// await RequestLog.create({
+		// 	ip: req.headers["x-forwarded-for"] || req.socket.remoteAddress,
+		// 	message: message,
+		// 	response: reply,
+		// 	customization: customization,
+		// })
+
+		res.json({ message: reply })
+	} catch (error) {
+		res.status(500).json({ error: "ACU request failed" })
+	}
+})
+
 app.get("/", (req, res) => {
 	res.render("index", { CLIENT_URL: process.env.CLIENT_URL })
 })
