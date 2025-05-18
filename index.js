@@ -59,9 +59,20 @@ const limiter = rateLimit({
 
 // Route: AI-powered chatbot response
 app.post("/api/chat", limiter, async (req, res) => {
-	return res.json({ message: "أنا تحت الصيانة حاليا" })
-
 	const { message, customization } = req.body
+
+	const chatArray = req.body.previousChat
+	let previousChat = ""
+
+	if (Array.isArray(chatArray)) {
+		previousChat = chatArray
+			.map(
+				({ sender, text }) =>
+					`${sender === "user" ? "User" : "AI"}: ${text}`
+			)
+			.join("\n")
+	}
+
 	const studentName =
 		customization && customization.customName
 			? customization.customName
@@ -224,16 +235,6 @@ app.post("/api/chat", limiter, async (req, res) => {
 	// 		return acc
 	// 	}, {}),
 	// }))
-	let previousChat = ""
-
-	if (Array.isArray(chatArray)) {
-		previousChat = chatArray
-			.map(
-				({ sender, text }) =>
-					`${sender === "user" ? "User" : "AI"}: ${text}`
-			)
-			.join("\n")
-	}
 	/**
 	 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 	 make a google sheet for instructions 
@@ -445,7 +446,8 @@ app.post("/api/excuses", async (req, res) => {
 
 app.post("/api/acu", async (req, res) => {
 	const { message, customization } = req.body
-
+	console.log(req.body)
+	console.log("message", message)
 	const chatArray = req.body.previousChat
 	let previousChat = ""
 
