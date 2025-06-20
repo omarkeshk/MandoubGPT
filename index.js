@@ -60,10 +60,9 @@ const limiter = rateLimit({
 // Route: AI-powered chatbot response
 app.post("/api/chat", limiter, async (req, res) => {
 	const { message, customization } = req.body
-
+	console.log(req.body)
 	const chatArray = req.body.previousChat
 	let previousChat = ""
-
 	if (Array.isArray(chatArray)) {
 		previousChat = chatArray
 			.map(
@@ -445,9 +444,7 @@ app.post("/api/excuses", async (req, res) => {
 })
 
 app.post("/api/acu", async (req, res) => {
-	const { message, customization } = req.body
-	console.log(req.body)
-	console.log("message", message)
+	const { message } = req.body
 	const chatArray = req.body.previousChat
 	let previousChat = ""
 
@@ -517,13 +514,20 @@ app.post("/api/acu", async (req, res) => {
 		AI:
 	`
 	try {
-		const aiResponse = await openai.chat.completions.create({
-			model: "gpt-4o-mini",
-			messages: [{ role: "system", content: prompt }],
-		})
-
+		console.log(0)
+		let aiResponse = {}
+		try {
+			aiResponse = await openai.chat.completions.create({
+				model: "gpt-4o-mini",
+				messages: [{ role: "system", content: prompt }],
+			})
+		} catch (error) {
+			console.error("OpenAI request failed:", error)
+		}
+		console.log(1)
 		let reply =
 			"Sorry, we couldn't generate a suitable response. Please try again."
+
 		if (
 			aiResponse.choices &&
 			aiResponse.choices.length > 0 &&
@@ -558,15 +562,14 @@ app.post("/api/acu", async (req, res) => {
 						break
 					}
 				} catch (err) {
-					res.json({
-						message:
-							"Usage limit reached. Please contact the developer.",
-					})
 					console.error("Fallback API key failed:", key, err)
 				}
 			}
 		}
 
+		res.json({ message: reply })
+
+		console.log(2)
 		// await RequestLog.create({
 		// 	ip: req.headers["x-forwarded-for"] || req.socket.remoteAddress,
 		// 	message: message,
@@ -583,4 +586,80 @@ app.post("/api/acu", async (req, res) => {
 app.get("/", (req, res) => {
 	res.render("index", { CLIENT_URL: process.env.CLIENT_URL })
 })
+// New route: Nutrition analysis using OpenAI
+app.get('/laibl', async (req, res) => {
+    const ingredients = req.query.ingredients;
+    const languageName = req.query.languageName || 'English';
+    if (!ingredients) {
+        return res.status(400).json({ error: 'ingredients query parameter is required' });
+    }
+
+    const prompt = `You are a professional nutritionist and food safety expert. Your job is to analyze food ingredients and provide health ratings.
+
+IMPORTANT RULES:
+1. Always respond in valid JSON format
+2. Health score must be between 1.0 and 10.0 (increments of 0.1)
+3. Provide clear, actionable feedback
+4. Be definitive, not vague
+5. Consider the user's profile for personalized advice
+6. Respond in ${languageName}
+
+HEALTH SCORE GUIDELINES:
+- 1.0-2.9: Dangerous/Very Unhealthy (red zone)
+- 3.0-4.9: Poor/Unhealthy (orange zone)
+- 5.0-6.9: Okay/Average (yellow zone)
+- 7.0-8.4: Good/Healthy (light green)
+- 8.5-10.0: Excellent/Very Healthy (dark green)
+
+RESPONSE FORMAT:
+{
+  "healthScore": 7.2,
+  "healthRating": "Good",
+  "explanation": "Clear explanation of the score",
+  "tips": [
+    "Specific actionable tip 1",
+    "Specific actionable tip 2"
+  ],
+  "concerningIngredients": [
+    {
+      "ingredient": "ingredient name",
+      "concern": "specific health concern",
+      "severity": "low|medium|high"
+    }
+  ],
+  "positiveIngredients": [
+    {
+      "ingredient": "ingredient name",
+      "benefit": "specific health benefit"
+    }
+  ],
+  "personalizedNotes": "Personalized advice based on user profile",
+  "nutritionalHighlights": {
+    "calories": "high|medium|low|unknown",
+    "sodium": "high|medium|low|unknown",
+    "sugar": "high|medium|low|unknown",
+    "fiber": "high|medium|low|unknown",
+    "protein": "high|medium|low|unknown",
+    "additives": "many|some|few|none"
+  }
+}
+
+Now analyze the provided ingredients following these guidelines and examples.
+
+Input: "${ingredients}"`;
+
+    try {
+        const aiResponse = await openai.chat.completions.create({
+            model: 'gpt-4o-mini',
+            messages: [{ role: 'system', content: prompt }],
+        });
+        const reply = aiResponse.choices?.[0]?.message?.content || '';
+        res.setHeader('Content-Type', 'application/json');
+        res.send(reply);
+    } catch (error) {
+        console.error('Laibl request failed:', error);
+        res.status(500).json({ error: 'Nutrition analysis request failed' });
+    }
+});
+
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`))
