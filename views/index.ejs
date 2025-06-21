@@ -499,28 +499,31 @@
 						? JSON.parse(localStorage.getItem("customization"))
 						: undefined
 
-					const response = await fetch(`${CLIENT_URL}/laibl`, {
-						method: "POST",
-						headers: {
-							"Content-Type": "application/json",
-						},
-						body: JSON.stringify({
-							message,
-							previousChat: Array.from(
-								chatMessages.querySelectorAll(".message")
-							).map((msg) => {
-								return {
-									sender: msg.classList.contains(
-										"user-message"
-									)
-										? "user"
-										: "bot",
-									text: msg.textContent.trim(),
-								}
+					const response = await fetch(
+						`${CLIENT_URL}/laibl/analysis/ingredients`,
+						{
+							method: "POST",
+							headers: {
+								"Content-Type": "application/json",
+							},
+							body: JSON.stringify({
+								message,
+								previousChat: Array.from(
+									chatMessages.querySelectorAll(".message")
+								).map((msg) => {
+									return {
+										sender: msg.classList.contains(
+											"user-message"
+										)
+											? "user"
+											: "bot",
+										text: msg.textContent.trim(),
+									}
+								}),
+								customization,
 							}),
-							customization,
-						}),
-					})
+						}
+					)
 					const data = await response.json()
 					console.log(data)
 					const botResponse = data.message
