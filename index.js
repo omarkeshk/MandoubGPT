@@ -590,7 +590,7 @@ app.get("/", (req, res) => {
 app.get("/favicon.ico", (req, res) => res.sendStatus(204))
 
 // New route: Nutrition analysis using OpenAI
-app.post("/laibl", async (req, res) => {
+app.post("/laibl/analysis/ingredients", async (req, res) => {
 	let { ingredients, languageName = "English" } = req.body
 	ingredients = ["Sugar", "Salt", "Olive Oil", "Garlic Powder"]
 
