@@ -499,7 +499,7 @@
 						? JSON.parse(localStorage.getItem("customization"))
 						: undefined
 
-					const response = await fetch(`${CLIENT_URL}/api/acu`, {
+					const response = await fetch(`${CLIENT_URL}/laibl`, {
 						method: "POST",
 						headers: {
 							"Content-Type": "application/json",
@@ -522,6 +522,7 @@
 						}),
 					})
 					const data = await response.json()
+					console.log(data)
 					const botResponse = data.message
 					const formattedResponse = botResponse
 						.replace(/^######\s*(.+)$/gm, "<h6>$1</h6>")

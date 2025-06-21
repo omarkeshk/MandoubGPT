@@ -586,15 +586,22 @@ app.post("/api/acu", async (req, res) => {
 app.get("/", (req, res) => {
 	res.render("index", { CLIENT_URL: process.env.CLIENT_URL })
 })
-// New route: Nutrition analysis using OpenAI
-app.get('/laibl', async (req, res) => {
-    const ingredients = req.query.ingredients;
-    const languageName = req.query.languageName || 'English';
-    if (!ingredients) {
-        return res.status(400).json({ error: 'ingredients query parameter is required' });
-    }
+// handle favicon to avoid 404
+app.get("/favicon.ico", (req, res) => res.sendStatus(204))
 
-    const prompt = `You are a professional nutritionist and food safety expert. Your job is to analyze food ingredients and provide health ratings.
+// New route: Nutrition analysis using OpenAI
+app.post("/laibl", async (req, res) => {
+	let { ingredients, languageName = "English" } = req.body
+	ingredients = ["Sugar", "Salt", "Olive Oil", "Garlic Powder"]
+
+	console.log("Received ingredients:", ingredients)
+	if (!ingredients) {
+		return res
+			.status(400)
+			.json({ error: "ingredients query parameter is required" })
+	}
+
+	const prompt = `You are a professional nutritionist and food safety expert. Your job is to analyze food ingredients and provide health ratings.
 
 IMPORTANT RULES:
 1. Always respond in valid JSON format
@@ -646,20 +653,25 @@ RESPONSE FORMAT:
 
 Now analyze the provided ingredients following these guidelines and examples.
 
-Input: "${ingredients}"`;
+Input: "${ingredients}"`
 
-    try {
-        const aiResponse = await openai.chat.completions.create({
-            model: 'gpt-4o-mini',
-            messages: [{ role: 'system', content: prompt }],
-        });
-        const reply = aiResponse.choices?.[0]?.message?.content || '';
-        res.setHeader('Content-Type', 'application/json');
-        res.send(reply);
-    } catch (error) {
-        console.error('Laibl request failed:', error);
-        res.status(500).json({ error: 'Nutrition analysis request failed' });
-    }
-});
+	try {
+		console.log("Sending request to OpenAI with prompt:", prompt)
+		const aiResponse = await openai.chat.completions.create({
+			model: "gpt-4o-mini",
+			messages: [{ role: "system", content: prompt }],
+		})
+		const reply = aiResponse.choices?.[0]?.message?.content || ""
+		console.log("Received response from OpenAI:", reply)
+		if (!reply) {
+			return res.status(500).json({ error: "No response from AI" })
+		}
+		res.setHeader("Content-Type", "application/json")
+		res.send(reply)
+	} catch (error) {
+		console.error("Laibl request failed:", error)
+		res.status(500).json({ error: "Nutrition analysis request failed" })
+	}
+})
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`))
